@@ -3,10 +3,10 @@ require('dotenv').config();
 const cors = require('cors');
 const app = express();
 const cookieParser = require('cookie-parser');
-
+const jwt = require('jsonwebtoken');
 
 const corsOptions = {
-    origin: 'http://localhost:5174',
+    origin: 'http://localhost:5173',
     credentials: true,
 }
 
@@ -28,16 +28,15 @@ app.post('/api/login', (req, res) => {
             return res.status(401).json({ message: "Invalid username or password" });
         }
 
-        res.cookie('username', username, {
+        const token = jwt.sign({ username }, "ghvjhgxjhvjhb", { expiresIn: '1m' });
+        res.cookie('token', token, {
             httpOnly: true,
             secure: "none",
-            maxAge: 5000 // 1 day
+            maxAge: 500000 // 1 day
         });
-        res.cookie('password', password, {
-            httpOnly: true,
-            secure: "none",
-            maxAge: 5000
-        });
+
+        
+
         return res.status(200).json({ message: "Login successful" });
     } catch (error) {
         console.log(error);
@@ -49,7 +48,9 @@ app.post('/api/login', (req, res) => {
 app.get('/api/check', (req, res) => {
     try {
         const { username, password } = req.cookies;
-        console.log(req.cookies)
+        const decoded = jwt.verify(req.cookies.token, "ghvjhgxjhvjhb");
+        console.log(decoded.username)
+        //console.log(req.cookies)
         return res.status(200).json({ message: "Cookies are set", username, password });
     } catch (error) {
         console.log(error);
